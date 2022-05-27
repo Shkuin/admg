@@ -14,8 +14,7 @@ UENUM(BlueprintType, Category = "Animation")
 enum class EAnimationDirection : uint8
 {
     Idle,
-    Left,
-    Right,
+    Move,
     Jump,
     DoubleJump,
     Flip
@@ -27,13 +26,11 @@ struct FAnimationFlipbooks
     GENERATED_BODY()
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    UPaperFlipbook* AnimMove{};
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    UPaperFlipbook* AnimIdle{};
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     UPaperFlipbook* AnimJump{};
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    UPaperFlipbook* AnimLeft{};
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    UPaperFlipbook* AnimRight{};
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    UPaperFlipbook* AnimStay{};
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     UPaperFlipbook* AnimDoubleJump{};
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -56,38 +53,35 @@ protected:
     UCameraComponent* CameraComponent;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimationCharacter|Config")
-    EAnimationDirection CurrentAnimationDirection;
+    EAnimationDirection CurrentAnimationDirection = EAnimationDirection::Idle;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationCharacter|Config")
     FAnimationFlipbooks Flipbooks;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimationCharacter|Config")
-    bool IsMoving;
+    bool IsMoving = true;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimationCharacter|Config")
-    bool IsFlipButtonPushed;
+    bool IsFlipButtonPushed = false;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationCharacter|Config")
-    float JumpHeight;
+    float JumpHeight = 500.0f;
 
     UFUNCTION(BlueprintCallable, Category = "AnimationCharacter|Animation")
-    void SetCurrentAnimationDirection(FVector const& Velocity);
+    void SetCurrentAnimationDirection();
 
-    virtual void BeginPlay() override;
+    void BeginPlay() override;
 
 public:
-    virtual void Tick(float DeltaSeconds) override;
-    virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-    virtual void Landed(const FHitResult& hit) override;
+    void Tick(float DeltaSeconds) override;
+    void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 private:
     UFUNCTION(BlueprintCallable, Category = "AnimationCharacter|Animation")
     void Animate(float DeltaTime, FVector OldLocation, FVector const OldVelocity);
 
-    uint8 DoubleJumpCount;
-
     void MoveForward(float Amount);
-    void DoubleJump();
+    void Jump() override;
     void FlipStart();
     void FlipStop();
 };

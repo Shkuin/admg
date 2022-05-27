@@ -17,11 +17,7 @@ AADPaperCharacter::AADPaperCharacter()
 
     CameraComponent = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
     CameraComponent->SetupAttachment(SpringArmComponent);
-
-    CurrentAnimationDirection = EAnimationDirection::Idle;
-    IsMoving = false;
-    IsFlipButtonPushed = false;
-    JumpHeight = 500.0f;
+    JumpMaxCount = 2;
 }
 
 void AADPaperCharacter::BeginPlay()
@@ -42,12 +38,7 @@ void AADPaperCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAxis("MoveForward", this, &AADPaperCharacter::MoveForward);
     PlayerInputComponent->BindAction("Flip", IE_Pressed, this, &AADPaperCharacter::FlipStart);
     PlayerInputComponent->BindAction("Flip", IE_Released, this, &AADPaperCharacter::FlipStop);
-    PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AADPaperCharacter::DoubleJump);
-}
-
-void AADPaperCharacter::Landed(const FHitResult& hit)
-{
-    DoubleJumpCount = 0;
+    PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AADPaperCharacter::Jump);
 }
 
 void AADPaperCharacter::FlipStart()
@@ -62,69 +53,56 @@ void AADPaperCharacter::FlipStop()
 
 void AADPaperCharacter::MoveForward(float Amount)
 {
+    Amount = JumpCurrentCount > 0 ? Amount : 1.0f;
     AddMovementInput(GetActorForwardVector(), Amount);
 }
 
-void AADPaperCharacter::DoubleJump()
+void AADPaperCharacter::Jump()
 {
-    if (DoubleJumpCount <= 1)
+    if (JumpCurrentCount <= 1)
     {
         ACharacter::LaunchCharacter(FVector(0, 0, JumpHeight), false, true);
-        DoubleJumpCount++;
+        ++JumpCurrentCount;
     }
+
+    bPressedJump = true;
+    JumpKeyHoldTime = 0.0f;
 }
 
-void AADPaperCharacter::SetCurrentAnimationDirection(FVector const& Velocity)
+void AADPaperCharacter::SetCurrentAnimationDirection()
 {
-    const float x = Velocity.GetSafeNormal().X;
-    const float z = Velocity.GetSafeNormal().Z;
-
-    IsMoving = x != 0.0f || z != 0.0f;
-
-    if (IsMoving)
+    if (IsFlipButtonPushed && JumpCurrentCount > 0)
     {
-        if (IsFlipButtonPushed)
-        {
-            CurrentAnimationDirection = EAnimationDirection::Flip;
-        }
-        else if (x > 0.0f && z == 0.0f)
-        {
-            CurrentAnimationDirection = EAnimationDirection::Right;
-        }
-        else if (x < 0.0f && z == 0.0f)
-        {
-            CurrentAnimationDirection = EAnimationDirection::Left;
-        }
-        else if (z != 0 && DoubleJumpCount != 1)
-        {
-            CurrentAnimationDirection = EAnimationDirection::DoubleJump;
-        }
-        else
-        {
-            CurrentAnimationDirection = EAnimationDirection::Jump;
-        }
+        CurrentAnimationDirection = EAnimationDirection::Flip;
+    }
+    else if (JumpCurrentCount == 1)
+    {
+        CurrentAnimationDirection = EAnimationDirection::Jump;
+    }
+    else if (JumpCurrentCount == 2)
+    {
+        CurrentAnimationDirection = EAnimationDirection::DoubleJump;
+    }
+    else if (IsMoving)
+    {
+        CurrentAnimationDirection = EAnimationDirection::Move;
+    }
+    else
+    {
+        CurrentAnimationDirection = EAnimationDirection::Idle;
     }
 }
 
 void AADPaperCharacter::Animate(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
 {
-    SetCurrentAnimationDirection(OldVelocity);
-
-    if (OldVelocity.Size() > 0.0f)
+    SetCurrentAnimationDirection();
+    switch (CurrentAnimationDirection)
     {
-        switch (CurrentAnimationDirection)
-        {
-            case EAnimationDirection::Left: GetSprite()->SetFlipbook(Flipbooks.AnimLeft); break;
-            case EAnimationDirection::Right: GetSprite()->SetFlipbook(Flipbooks.AnimRight); break;
-
-            case EAnimationDirection::Jump: GetSprite()->SetFlipbook(Flipbooks.AnimJump); break;
-            case EAnimationDirection::DoubleJump: GetSprite()->SetFlipbook(Flipbooks.AnimDoubleJump); break;
-            case EAnimationDirection::Flip: GetSprite()->SetFlipbook(Flipbooks.AnimFlip); break;
-            default: break;
-        }
-    }
-    else
-    {
-        GetSprite()->SetFlipbook(Flipbooks.AnimStay);
+        case EAnimationDirection::Move: GetSprite()->SetFlipbook(Flipbooks.AnimMove); break;
+        case EAnimationDirection::Jump: GetSprite()->SetFlipbook(Flipbooks.AnimJump); break;
+        case EAnimationDirection::DoubleJump: GetSprite()->SetFlipbook(Flipbooks.AnimDoubleJump); break;
+        case EAnimationDirection::Flip: GetSprite()->SetFlipbook(Flipbooks.AnimFlip); break;
+        case EAnimationDirection::Idle: GetSprite()->SetFlipbook(Flipbooks.AnimIdle); break;
+        default: break;
     }
 }
