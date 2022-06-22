@@ -93,7 +93,7 @@ void AADPaperCharacter::SetCurrentAnimationDirection()
     }
 }
 
-void AADPaperCharacter::Animate(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
+void AADPaperCharacter::Animate(float DeltaTime, FVector OldLocation, FVector const OldVelocit)
 {
     SetCurrentAnimationDirection();
     switch (CurrentAnimationDirection)
