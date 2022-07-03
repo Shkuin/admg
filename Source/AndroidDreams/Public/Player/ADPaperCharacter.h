@@ -59,7 +59,7 @@ protected:
     FAnimationFlipbooks Flipbooks;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimationCharacter|Config")
-    bool IsMoving = true;
+    bool IsMoving = false;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimationCharacter|Config")
     bool IsFlipButtonPushed = false;

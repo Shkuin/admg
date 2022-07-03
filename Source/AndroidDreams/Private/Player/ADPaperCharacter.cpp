@@ -53,7 +53,7 @@ void AADPaperCharacter::FlipStop()
 
 void AADPaperCharacter::MoveForward(float Amount)
 {
-    Amount = JumpCurrentCount > 0 ? Amount : 1.0f;
+    IsMoving = Amount > 0 ? true : false;
     AddMovementInput(GetActorForwardVector(), Amount);
 }
 
