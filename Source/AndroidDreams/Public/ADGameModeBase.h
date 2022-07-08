@@ -6,9 +6,9 @@
 #include "GameFramework/GameModeBase.h"
 #include "ADGameModeBase.generated.h"
 
-/**
- *
- */
+
+class AController;
+
 UCLASS()
 class ANDROIDDREAMS_API AADGameModeBase : public AGameModeBase
 {

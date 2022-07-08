@@ -67,6 +67,9 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationCharacter|Config")
     float JumpHeight = 500.0f;
 
+    /*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Checkpoint")
+    AActor* CheckpointActor; */ 
+
     UFUNCTION(BlueprintCallable, Category = "AnimationCharacter|Animation")
     void SetCurrentAnimationDirection();
 
